@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPBC — Administration</title>
+  <link rel="icon" type="image/png" href="images/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #c8102e; --red-dark: #9e0d24;
+      --gold: #f0c020; --black: #0e0e0e; --dark: #1a1a1a;
+      --bg: #f0f0f0; --card: #fff; --border: #e0e0e0;
+      --text: #1a1a1a; --muted: #888; --green: #1a8a4a;
+      --tag-entree: #d4760b; --tag-plat: #c0392b; --tag-dessert: #7b2d8b;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: var(--black);
+      background-image: radial-gradient(ellipse 60% 50% at 80% 50%, rgba(200,16,46,0.1) 0%, transparent 70%);
+    }
+    .login-card {
+      background: #1a1a1a; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 48px 40px; width: 100%; max-width: 380px; text-align: center;
+    }
+    .login-card img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 20px; }
+    .login-card h1 { font-family: 'Bebas Neue', sans-serif; color: #fff; font-size: 28px; letter-spacing: 1px; margin-bottom: 4px; }
+    .login-card p { color: rgba(255,255,255,0.4); font-size: 13px; margin-bottom: 32px; }
+    .login-card input[type="password"] {
+      width: 100%; padding: 12px 16px; border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05);
+      color: #fff; font-size: 15px; font-family: 'Outfit', sans-serif;
+      margin-bottom: 12px; outline: none; text-align: center; letter-spacing: 4px;
+      transition: border-color 0.2s;
+    }
+    .login-card input[type="password"]:focus { border-color: var(--red); }
+    .login-card input[type="password"]::placeholder { letter-spacing: 0; color: rgba(255,255,255,0.25); }
+    .btn-login {
+      width: 100%; padding: 13px; background: var(--red); color: #fff;
+      border: none; border-radius: 6px; font-size: 14px; font-weight: 600;
+      font-family: 'Outfit', sans-serif; cursor: pointer; letter-spacing: 0.5px;
+      transition: background 0.2s;
+    }
+    .btn-login:hover { background: var(--red-dark); }
+    .login-error { color: #e06070; font-size: 13px; margin-top: 10px; min-height: 18px; }
+    .login-hint { color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 20px; }
+
+    /* ── ADMIN SHELL ── */
+    #admin-screen { display: none; }
+    .admin-nav {
+      background: var(--black); border-bottom: 2px solid var(--red);
+      padding: 0 32px; display: flex; align-items: center; justify-content: space-between;
+      height: 60px; position: sticky; top: 0; z-index: 100;
+    }
+    .admin-nav-logo { display: flex; align-items: center; gap: 10px; }
+    .admin-nav-logo img { width: 36px; height: 36px; object-fit: contain; }
+    .admin-nav-logo span { color: #fff; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; }
+    .admin-nav-badge { background: var(--red); color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+    .admin-nav-right { display: flex; align-items: center; gap: 16px; }
+    .btn-site { color: rgba(255,255,255,0.5); font-size: 12px; text-decoration: none; display: flex; align-items: center; gap: 5px; transition: color 0.2s; }
+    .btn-site:hover { color: var(--gold); }
+    .btn-logout {
+      background: transparent; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.6);
+      padding: 6px 14px; border-radius: 4px; font-size: 12px; cursor: pointer; font-family: 'Outfit', sans-serif;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-logout:hover { border-color: var(--red); color: #e06070; }
+
+    /* ── TABS ── */
+    .admin-tabs {
+      background: #fff; border-bottom: 1px solid var(--border);
+      padding: 0 32px; display: flex; gap: 0;
+    }
+    .tab-btn {
+      padding: 0 20px; height: 48px; background: none; border: none;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer;
+      font-family: 'Outfit', sans-serif; letter-spacing: 0.3px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab-btn.active { color: var(--red); border-color: var(--red); }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* ── MAIN ── */
+    .admin-main { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── CARDS ── */
+    .admin-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 24px; margin-bottom: 20px;
+    }
+    .admin-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .admin-card h3 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); display: inline-block; }
+
+    /* ── FORMS ── */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-row.full { grid-template-columns: 1fr; }
+    .form-row.trio { grid-template-columns: 1fr 1fr 1fr; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; letter-spacing: 0.5px; text-transform: uppercase; }
+    input[type="text"], input[type="date"], input[type="password"], select, textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 14px; font-family: 'Outfit', sans-serif;
+      color: var(--text); background: #fff; outline: none; transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--red); }
+    textarea { resize: vertical; min-height: 72px; }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      background: var(--red); color: #fff; border: none;
+      padding: 10px 22px; border-radius: 6px; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: 'Outfit', sans-serif;
+      transition: background 0.2s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary:hover { background: var(--red-dark); }
+    .btn-secondary {
+      background: #f5f5f5; color: var(--text); border: 1px solid var(--border);
+      padding: 10px 22px; border-radius: 6px; font-size: 13px; font-weight: 500;
+      cursor: pointer; font-family: 'Outfit', sans-serif; transition: background 0.2s;
+    }
+    .btn-secondary:hover { background: #eee; }
+    .btn-danger {
+      background: transparent; color: #c0392b; border: 1px solid #f0c0c0;
+      padding: 6px 12px; border-radius: 4px; font-size: 12px;
+      cursor: pointer; font-family: 'Outfit', sans-serif; transition: background 0.2s;
+    }
+    .btn-danger:hover { background: #fff0f0; }
+    .btn-edit {
+      background: transparent; color: var(--muted); border: 1px solid var(--border);
+      padding: 6px 12px; border-radius: 4px; font-size: 12px;
+      cursor: pointer; font-family: 'Outfit', sans-serif; transition: background 0.2s;
+    }
+    .btn-edit:hover { background: #f5f5f5; color: var(--text); }
+    .btn-export-csv {
+      background: var(--dark); color: #fff; border: none;
+      padding: 10px 22px; border-radius: 6px; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: 'Outfit', sans-serif;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: background 0.2s;
+    }
+    .btn-export-csv:hover { background: #333; }
+    .btn-delete-all {
+      background: transparent; color: #c0392b; border: 1px solid #f0c0c0;
+      padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: 'Outfit', sans-serif; transition: background 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-delete-all:hover { background: #fff0f0; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+      background: var(--dark); color: #fff; padding: 12px 20px;
+      border-radius: 6px; font-size: 13px; font-weight: 500;
+      transform: translateY(80px); opacity: 0;
+      transition: transform 0.3s, opacity 0.3s;
+      border-left: 3px solid var(--green);
+    }
+    #toast.show { transform: none; opacity: 1; }
+
+    /* ── EVENTS LIST ── */
+    .events-list { display: flex; flex-direction: column; gap: 10px; }
+    .event-item {
+      background: #fafafa; border: 1px solid var(--border); border-radius: 6px;
+      padding: 14px 16px; display: flex; align-items: center; gap: 14px;
+    }
+    .event-item-date {
+      background: var(--red); border-radius: 6px; min-width: 48px;
+      text-align: center; padding: 6px; flex-shrink: 0;
+    }
+    .event-item-date .d { color: #fff; font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; }
+    .event-item-date .m { color: rgba(255,255,255,0.7); font-size: 10px; text-transform: uppercase; }
+    .event-item-info { flex: 1; }
+    .event-item-info strong { font-size: 14px; display: block; margin-bottom: 2px; }
+    .event-item-info span { font-size: 12px; color: var(--muted); }
+    .event-tag { display: inline-block; background: rgba(200,16,46,0.08); color: var(--red); font-size: 10px; padding: 2px 8px; border-radius: 3px; font-weight: 700; margin-left: 8px; }
+    .event-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .empty-state { text-align: center; padding: 32px; color: var(--muted); font-size: 14px; }
+
+    /* ── SCHEDULE ── */
+    .schedule-table { width: 100%; border-collapse: collapse; }
+    .schedule-table th { text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .schedule-table td { padding: 10px 12px; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
+    .schedule-table tr:last-child td { border-bottom: none; }
+    .schedule-table tr:hover td { background: #fafafa; }
+    .day-badge { display: inline-block; background: var(--black); color: var(--gold); font-family: 'Bebas Neue', sans-serif; font-size: 13px; padding: 2px 8px; border-radius: 4px; letter-spacing: 1px; }
+
+    /* ── SPONSORS ── */
+    .sponsors-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    .sponsor-item {
+      background: #fafafa; border: 1px solid var(--border); border-radius: 6px;
+      padding: 16px; text-align: center; position: relative;
+    }
+    .sponsor-item img { max-width: 120px; max-height: 50px; object-fit: contain; margin-bottom: 10px; }
+    .sponsor-item p { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+
+    /* ── SÉCURITÉ ── */
+    .security-info { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 14px 16px; font-size: 13px; color: #795548; margin-bottom: 20px; line-height: 1.6; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    /* ── AG INSCRIPTIONS ── */
+    .ag-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;
+    }
+    .ag-stat {
+      border-radius: 6px; padding: 14px 12px; text-align: center; border: 1px solid;
+    }
+    .ag-stat.entree  { background: #fdf3e7; border-color: #f5c780; }
+    .ag-stat.plat    { background: #fdecea; border-color: #f0a0a0; }
+    .ag-stat.dessert { background: #f5edfb; border-color: #c8a0e8; }
+    .ag-stat .num { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; line-height: 1; }
+    .ag-stat.entree  .num { color: var(--tag-entree); }
+    .ag-stat.plat    .num { color: var(--tag-plat); }
+    .ag-stat.dessert .num { color: var(--tag-dessert); }
+    .ag-stat .lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin-top: 2px; }
+
+    .ag-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 3px; flex-shrink: 0; display: inline-block;
+    }
+    .ag-tag.entree  { background: #fdf3e7; color: var(--tag-entree); }
+    .ag-tag.plat    { background: #fdecea; color: var(--tag-plat); }
+    .ag-tag.dessert { background: #f5edfb; color: var(--tag-dessert); }
+
+    .ag-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .ag-table th {
+      text-align: left; font-size: 11px; font-weight: 700; color: var(--muted);
+      letter-spacing: 1px; text-transform: uppercase; padding: 8px 10px;
+      border-bottom: 1px solid var(--border); background: #fafafa;
+    }
+    .ag-table td { padding: 10px 10px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+    .ag-table tr:last-child td { border-bottom: none; }
+    .ag-table tr:hover td { background: #fafafa; }
+    .contact-cell { font-size: 12px; color: var(--muted); }
+    .ag-actions-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+
+    @media (max-width: 600px) {
+      .admin-main { padding: 20px 12px; }
+      .form-row, .form-row.trio { grid-template-columns: 1fr; }
+      .admin-tabs { padding: 0 12px; }
+      .tab-btn { padding: 0 14px; font-size: 12px; }
+      .admin-nav { padding: 0 16px; }
+      .ag-stats { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <img src="images/logo.png" alt="GPBC">
+    <h1>Administration</h1>
+    <p>Graveson Provence Basket Club</p>
+    <input type="password" id="password-input" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')login()">
+    <button class="btn-login" onclick="login()">Accéder</button>
+    <div class="login-error" id="login-error"></div>
+    <p class="login-hint">Accès réservé aux membres du bureau</p>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-screen">
+
+  <nav class="admin-nav">
+    <div class="admin-nav-logo">
+      <img src="images/logo.png" alt="GPBC">
+      <span>GPBC Admin</span>
+      <span class="admin-nav-badge">Bureau</span>
+    </div>
+    <div class="admin-nav-right">
+      <a href="index.html" class="btn-site" target="_blank">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Voir le site
+      </a>
+      <button class="btn-logout" onclick="logout()">Déconnexion</button>
+    </div>
+  </nav>
+
+  <div class="admin-tabs">
+    <button class="tab-btn active" onclick="showTab('events', this)">Événements</button>
+    <button class="tab-btn" onclick="showTab('schedule', this)">Horaires</button>
+    <button class="tab-btn" onclick="showTab('sponsors', this)">Sponsors</button>
+    <button class="tab-btn" onclick="showTab('ag', this)">🍽 Inscriptions AG</button>
+    <button class="tab-btn" onclick="showTab('security', this)">Sécurité</button>
+  </div>
+
+  <div class="admin-main">
+
+    <!-- ÉVÉNEMENTS -->
+    <div class="tab-panel active" id="tab-events">
+      <div class="admin-card">
+        <h3><span class="dot"></span> <span id="event-form-title">Ajouter un événement</span></h3>
+        <input type="hidden" id="edit-event-id">
+        <div class="form-row">
+          <div><label>Titre *</label><input type="text" id="ev-title" placeholder="Ex : Match contre Arles"></div>
+          <div><label>Date *</label><input type="date" id="ev-date"></div>
+        </div>
+        <div class="form-row full">
+          <div><label>Description</label><textarea id="ev-desc" placeholder="Lieu, catégories concernées, infos pratiques..."></textarea></div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>Catégorie</label>
+            <select id="ev-tag">
+              <option value="">— Aucune —</option>
+              <option value="Match">Match</option>
+              <option value="Tournoi">Tournoi</option>
+              <option value="Inscription">Inscription</option>
+              <option value="Bureau">Bureau</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px;">
+            <button class="btn-primary" onclick="saveEvent()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="event-btn-label">Ajouter</span>
+            </button>
+            <button class="btn-secondary" id="cancel-edit-btn" onclick="cancelEdit()" style="display:none;">Annuler</button>
+          </div>
+        </div>
+      </div>
+      <div class="admin-card">
+        <h3><span class="dot"></span> Événements enregistrés</h3>
+        <div class="events-list" id="admin-events-list">
+          <div class="empty-state">Aucun événement — ajoutez-en un ci-dessus.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HORAIRES -->
+    <div class="tab-panel" id="tab-schedule">
+      <div class="admin-card">
+        <h3><span class="dot"></span> <span id="sched-form-title">Ajouter un créneau</span></h3>
+        <input type="hidden" id="edit-sched-id">
+        <div class="form-row trio">
+          <div>
+            <label>Jour *</label>
+            <select id="sc-day">
+              <option>Lundi</option><option>Mardi</option><option>Mercredi</option>
+              <option>Jeudi</option><option>Vendredi</option><option>Samedi</option>
+            </select>
+          </div>
+          <div><label>Catégorie *</label><input type="text" id="sc-cat" placeholder="Ex : U11, Seniors..."></div>
+          <div><label>Horaire *</label><input type="text" id="sc-time" placeholder="Ex : 17h00 – 18h30"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn-primary" onclick="saveSched()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="sched-btn-label">Ajouter</span>
+          </button>
+          <button class="btn-secondary" id="cancel-sched-btn" onclick="cancelSchedEdit()" style="display:none;">Annuler</button>
+        </div>
+      </div>
+      <div class="admin-card">
+        <h3><span class="dot"></span> Créneaux enregistrés</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Ces données remplacent les horaires affichés sur le site public.</p>
+        <table class="schedule-table">
+          <thead><tr><th>Jour</th><th>Catégorie</th><th>Horaire</th><th></th></tr></thead>
+          <tbody id="sched-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SPONSORS -->
+    <div class="tab-panel" id="tab-sponsors">
+      <div class="admin-card">
+        <h3><span class="dot"></span> Sponsors actuels</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Les logos sont dans le dossier <code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;">images/</code>.</p>
+        <div class="sponsors-list" id="sponsors-list"></div>
+      </div>
+      <div class="admin-card">
+        <h3><span class="dot"></span> <span id="sponsor-form-title">Ajouter un sponsor</span></h3>
+        <input type="hidden" id="edit-sponsor-id">
+        <div class="form-row">
+          <div><label>Nom du sponsor *</label><input type="text" id="sp-name" placeholder="Ex : Boulangerie Martin"></div>
+          <div><label>Fichier logo (dans images/) *</label><input type="text" id="sp-file" placeholder="Ex : boulangerie.jpg"></div>
+        </div>
+        <div class="form-row full">
+          <div><label>Site web (optionnel)</label><input type="text" id="sp-url" placeholder="https://..."></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn-primary" onclick="saveSponsor()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="sponsor-btn-label">Ajouter</span>
+          </button>
+          <button class="btn-secondary" id="cancel-sponsor-btn" onclick="cancelSponsorEdit()" style="display:none;">Annuler</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🍽 INSCRIPTIONS AG -->
+    <div class="tab-panel" id="tab-ag">
+      <div class="admin-card">
+        <h3><span class="dot"></span> Inscriptions au repas partagé</h3>
+
+        <div class="ag-stats">
+          <div class="ag-stat entree"><div class="num" id="ag-cnt-entree">0</div><div class="lbl">Entrées</div></div>
+          <div class="ag-stat plat">  <div class="num" id="ag-cnt-plat">0</div>  <div class="lbl">Plats</div></div>
+          <div class="ag-stat dessert"><div class="num" id="ag-cnt-dessert">0</div><div class="lbl">Desserts</div></div>
+        </div>
+
+        <div class="ag-actions-bar">
+          <button class="btn-export-csv" onclick="exportCSV()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exporter CSV
+          </button>
+          <button class="btn-delete-all" onclick="clearAG()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            Tout effacer
+          </button>
+          <span id="ag-total" style="font-size:13px;color:var(--muted);margin-left:auto;"></span>
+        </div>
+
+        <div id="ag-table-wrap">
+          <div class="empty-state" id="ag-empty">Aucune inscription pour le moment.</div>
+          <table class="ag-table" id="ag-table" style="display:none">
+            <thead>
+              <tr>
+                <th>Catégorie</th>
+                <th>Enfant</th>
+                <th>Parent / Responsable</th>
+                <th>Contact 🔒</th>
+                <th>Apport</th>
+                <th>Portions</th>
+                <th>Commentaire</th>
+                <th>Date inscription</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="ag-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SÉCURITÉ -->
+    <div class="tab-panel" id="tab-security">
+      <div class="admin-card">
+        <h3><span class="dot"></span> Changer le mot de passe</h3>
+        <div class="security-info">
+          ⚠️ Le mot de passe est stocké localement dans votre navigateur. Il devra être reconfiguré sur chaque appareil utilisé pour accéder à l'administration.
+        </div>
+        <div class="form-row full"><div><label>Mot de passe actuel</label><input type="password" id="current-pwd" placeholder="••••••••"></div></div>
+        <div class="form-row">
+          <div><label>Nouveau mot de passe</label><input type="password" id="new-pwd" placeholder="••••••••"></div>
+          <div><label>Confirmer le nouveau</label><input type="password" id="confirm-pwd" placeholder="••••••••"></div>
+        </div>
+        <div style="margin-top:12px;">
+          <button class="btn-primary" onclick="changePassword()">Enregistrer le nouveau mot de passe</button>
+        </div>
+        <div id="pwd-msg" style="font-size:13px;margin-top:10px;min-height:18px;"></div>
+      </div>
+      <div class="admin-card">
+        <h3><span class="dot"></span> Informations</h3>
+        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+          <tr><td style="padding:8px 0;color:var(--muted);border-bottom:1px solid #f5f5f5;">URL du site public</td><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;" id="info-site-url">—</td></tr>
+          <tr><td style="padding:8px 0;color:var(--muted);border-bottom:1px solid #f5f5f5;">URL de la page admin</td><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;" id="info-admin-url">—</td></tr>
+          <tr><td style="padding:8px 0;color:var(--muted);">Données stockées</td><td style="padding:8px 0;">localStorage (navigateur)</td></tr>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast">✓ Enregistré</div>
+
+<script>
+// ════════════════════════════════════════
+// CONSTANTES
+// ════════════════════════════════════════
+const KEY_PWD    = 'gpbc_admin_pwd';
+const KEY_EVENTS = 'gpbc_events';
+const KEY_SCHED  = 'gpbc_schedule';
+const KEY_SPONS  = 'gpbc_sponsors';
+const KEY_AG     = 'ag_participants';
+const DEFAULT_PWD = 'GPBC2026';
+const MONTHS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+const DAYS_ORDER = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+const CAT_LABELS = { entree: 'Entrée / Apéro', plat: 'Plat', dessert: 'Dessert' };
+
+// ════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════
+function get(key, def=[]) { try { return JSON.parse(localStorage.getItem(key)) ?? def; } catch { return def; } }
+function set(key, val)    { localStorage.setItem(key, JSON.stringify(val)); }
+function uid()            { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function esc(s)           { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg='Enregistré !', error=false) {
+  const t = document.getElementById('toast');
+  t.textContent = (error ? '✗ ' : '✓ ') + msg;
+  t.style.borderLeftColor = error ? 'var(--red)' : 'var(--green)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════
+function getPassword() { return localStorage.getItem(KEY_PWD) || DEFAULT_PWD; }
+function login() {
+  const val = document.getElementById('password-input').value;
+  const err = document.getElementById('login-error');
+  if (val === getPassword()) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-screen').style.display = 'block';
+    document.getElementById('password-input').value = '';
+    err.textContent = '';
+    initAdmin();
+  } else {
+    err.textContent = 'Mot de passe incorrect.';
+    document.getElementById('password-input').value = '';
+    document.getElementById('password-input').focus();
+  }
+}
+function logout() {
+  document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+function changePassword() {
+  const cur = document.getElementById('current-pwd').value;
+  const nw  = document.getElementById('new-pwd').value;
+  const cf  = document.getElementById('confirm-pwd').value;
+  const msg = document.getElementById('pwd-msg');
+  if (cur !== getPassword())  { msg.style.color='#c0392b'; msg.textContent='Mot de passe actuel incorrect.'; return; }
+  if (nw.length < 6)          { msg.style.color='#c0392b'; msg.textContent='Au moins 6 caractères requis.'; return; }
+  if (nw !== cf)              { msg.style.color='#c0392b'; msg.textContent='Les deux mots de passe ne correspondent pas.'; return; }
+  localStorage.setItem(KEY_PWD, nw);
+  msg.style.color = 'var(--green)'; msg.textContent = 'Mot de passe mis à jour !';
+  ['current-pwd','new-pwd','confirm-pwd'].forEach(id => document.getElementById(id).value = '');
+}
+
+// ════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'ag') renderAG();
+}
+
+// ════════════════════════════════════════
+// ÉVÉNEMENTS
+// ════════════════════════════════════════
+function getEvents() { return get(KEY_EVENTS, []); }
+function setEvents(v) { set(KEY_EVENTS, v); }
+
+function renderAdminEvents() {
+  const list = document.getElementById('admin-events-list');
+  const events = getEvents().sort((a,b) => new Date(a.date)-new Date(b.date));
+  if (!events.length) { list.innerHTML = '<div class="empty-state">Aucun événement — ajoutez-en un ci-dessus.</div>'; return; }
+  list.innerHTML = events.map(ev => {
+    const d = new Date(ev.date + 'T12:00:00');
+    return `<div class="event-item">
+      <div class="event-item-date"><div class="d">${String(d.getDate()).padStart(2,'0')}</div><div class="m">${MONTHS[d.getMonth()]}</div></div>
+      <div class="event-item-info">
+        <strong>${esc(ev.title)}${ev.tag ? `<span class="event-tag">${esc(ev.tag)}</span>` : ''}</strong>
+        <span>${esc(ev.description||'')}</span>
+      </div>
+      <div class="event-actions">
+        <button class="btn-edit" onclick="editEvent('${ev.id}')">Modifier</button>
+        <button class="btn-danger" onclick="deleteEvent('${ev.id}')">Supprimer</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveEvent() {
+  const id    = document.getElementById('edit-event-id').value;
+  const title = document.getElementById('ev-title').value.trim();
+  const date  = document.getElementById('ev-date').value;
+  const desc  = document.getElementById('ev-desc').value.trim();
+  const tag   = document.getElementById('ev-tag').value;
+  if (!title || !date) { toast('Titre et date sont obligatoires.', true); return; }
+  let events = getEvents();
+  if (id) {
+    events = events.map(e => e.id === id ? {...e, title, date, description: desc, tag} : e);
+    toast('Événement modifié !');
+  } else {
+    events.push({ id: uid(), title, date, description: desc, tag });
+    toast('Événement ajouté !');
+  }
+  setEvents(events); cancelEdit(); renderAdminEvents();
+}
+function editEvent(id) {
+  const ev = getEvents().find(e => e.id === id); if (!ev) return;
+  document.getElementById('edit-event-id').value = ev.id;
+  document.getElementById('ev-title').value = ev.title;
+  document.getElementById('ev-date').value = ev.date;
+  document.getElementById('ev-desc').value = ev.description||'';
+  document.getElementById('ev-tag').value = ev.tag||'';
+  document.getElementById('event-form-title').textContent = 'Modifier l\'événement';
+  document.getElementById('event-btn-label').textContent = 'Enregistrer';
+  document.getElementById('cancel-edit-btn').style.display = '';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function deleteEvent(id) {
+  if (!confirm('Supprimer cet événement ?')) return;
+  setEvents(getEvents().filter(e => e.id !== id)); renderAdminEvents(); toast('Événement supprimé.');
+}
+function cancelEdit() {
+  ['edit-event-id','ev-title','ev-date','ev-desc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('ev-tag').value = '';
+  document.getElementById('event-form-title').textContent = 'Ajouter un événement';
+  document.getElementById('event-btn-label').textContent = 'Ajouter';
+  document.getElementById('cancel-edit-btn').style.display = 'none';
+}
+
+// ════════════════════════════════════════
+// HORAIRES
+// ════════════════════════════════════════
+const DEFAULT_SCHEDULE = [
+  {id:'s1',day:'Lundi',cat:'Seniors',time:'20h00 – 22h00'},
+  {id:'s2',day:'Mardi',cat:'U13',time:'17h30 – 19h00'},
+  {id:'s3',day:'Mardi',cat:'U18',time:'19h00 – 20h30'},
+  {id:'s4',day:'Mercredi',cat:'U7',time:'16h00 – 17h00'},
+  {id:'s5',day:'Mercredi',cat:'U9',time:'16h30 – 17h30'},
+  {id:'s6',day:'Mercredi',cat:'U15 & U18',time:'17h30 – 19h00'},
+  {id:'s7',day:'Jeudi',cat:'U11',time:'17h00 – 18h00'},
+  {id:'s8',day:'Jeudi',cat:'U13',time:'18h00 – 19h00'},
+];
+function getSched() { const s = get(KEY_SCHED, null); if (!s||!s.length) { set(KEY_SCHED, DEFAULT_SCHEDULE); return DEFAULT_SCHEDULE; } return s; }
+function setSched(v) { set(KEY_SCHED, v); }
+
+function renderAdminSched() {
+  const tbody = document.getElementById('sched-tbody');
+  const sched = getSched().sort((a,b) => DAYS_ORDER.indexOf(a.day)-DAYS_ORDER.indexOf(b.day));
+  if (!sched.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Aucun créneau.</td></tr>'; return; }
+  tbody.innerHTML = sched.map(s => `<tr>
+    <td><span class="day-badge">${s.day}</span></td>
+    <td><strong>${esc(s.cat)}</strong></td>
+    <td>${esc(s.time)}</td>
+    <td style="text-align:right;white-space:nowrap;">
+      <button class="btn-edit" onclick="editSched('${s.id}')">Modifier</button>
+      <button class="btn-danger" style="margin-left:4px;" onclick="deleteSched('${s.id}')">Supprimer</button>
+    </td>
+  </tr>`).join('');
+}
+function saveSched() {
+  const id = document.getElementById('edit-sched-id').value;
+  const day = document.getElementById('sc-day').value;
+  const cat = document.getElementById('sc-cat').value.trim();
+  const time = document.getElementById('sc-time').value.trim();
+  if (!cat||!time) { toast('Catégorie et horaire sont obligatoires.', true); return; }
+  let sched = getSched();
+  if (id) { sched = sched.map(s => s.id===id ? {...s,day,cat,time} : s); toast('Créneau modifié !'); }
+  else { sched.push({id:uid(),day,cat,time}); toast('Créneau ajouté !'); }
+  setSched(sched); cancelSchedEdit(); renderAdminSched();
+}
+function editSched(id) {
+  const s = getSched().find(x => x.id===id); if (!s) return;
+  document.getElementById('edit-sched-id').value = s.id;
+  document.getElementById('sc-day').value = s.day;
+  document.getElementById('sc-cat').value = s.cat;
+  document.getElementById('sc-time').value = s.time;
+  document.getElementById('sched-form-title').textContent = 'Modifier le créneau';
+  document.getElementById('sched-btn-label').textContent = 'Enregistrer';
+  document.getElementById('cancel-sched-btn').style.display = '';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function deleteSched(id) {
+  if (!confirm('Supprimer ce créneau ?')) return;
+  setSched(getSched().filter(s => s.id!==id)); renderAdminSched(); toast('Créneau supprimé.');
+}
+function cancelSchedEdit() {
+  document.getElementById('edit-sched-id').value = '';
+  document.getElementById('sc-day').value = 'Lundi';
+  document.getElementById('sc-cat').value = '';
+  document.getElementById('sc-time').value = '';
+  document.getElementById('sched-form-title').textContent = 'Ajouter un créneau';
+  document.getElementById('sched-btn-label').textContent = 'Ajouter';
+  document.getElementById('cancel-sched-btn').style.display = 'none';
+}
+
+// ════════════════════════════════════════
+// SPONSORS
+// ════════════════════════════════════════
+const DEFAULT_SPONSORS = [
+  {id:'sp1',name:'Pressoirs de Provence',file:'pressoirs.jpg',url:''},
+  {id:'sp2',name:'U Express Graveson',file:'uexpress.png',url:''},
+  {id:'sp3',name:'TPK 84',file:'tpk.jpg',url:''},
+];
+function getSponsors() { const s = get(KEY_SPONS, null); if (!s||!s.length) { set(KEY_SPONS, DEFAULT_SPONSORS); return DEFAULT_SPONSORS; } return s; }
+function setSponsors(v) { set(KEY_SPONS, v); }
+
+function renderSponsors() {
+  const list = document.getElementById('sponsors-list');
+  list.innerHTML = getSponsors().map(sp => `<div class="sponsor-item">
+    <img src="images/${esc(sp.file)}" alt="${esc(sp.name)}" onerror="this.style.display='none'">
+    <p>${esc(sp.name)}</p>
+    <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn-edit" onclick="editSponsor('${sp.id}')">Modifier</button>
+      <button class="btn-danger" onclick="deleteSponsor('${sp.id}')">Supprimer</button>
+    </div>
+  </div>`).join('');
+}
+function saveSponsor() {
+  const id = document.getElementById('edit-sponsor-id').value;
+  const name = document.getElementById('sp-name').value.trim();
+  const file = document.getElementById('sp-file').value.trim();
+  const url  = document.getElementById('sp-url').value.trim();
+  if (!name||!file) { toast('Nom et fichier logo sont obligatoires.', true); return; }
+  let sponsors = getSponsors();
+  if (id) { sponsors = sponsors.map(s => s.id===id ? {...s,name,file,url} : s); toast('Sponsor modifié !'); }
+  else { sponsors.push({id:uid(),name,file,url}); toast('Sponsor ajouté !'); }
+  setSponsors(sponsors); cancelSponsorEdit(); renderSponsors();
+}
+function editSponsor(id) {
+  const sp = getSponsors().find(s => s.id===id); if (!sp) return;
+  document.getElementById('edit-sponsor-id').value = sp.id;
+  document.getElementById('sp-name').value = sp.name;
+  document.getElementById('sp-file').value = sp.file;
+  document.getElementById('sp-url').value = sp.url||'';
+  document.getElementById('sponsor-form-title').textContent = 'Modifier le sponsor';
+  document.getElementById('sponsor-btn-label').textContent = 'Enregistrer';
+  document.getElementById('cancel-sponsor-btn').style.display = '';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function deleteSponsor(id) {
+  if (!confirm('Supprimer ce sponsor ?')) return;
+  setSponsors(getSponsors().filter(s => s.id!==id)); renderSponsors(); toast('Sponsor supprimé.');
+}
+function cancelSponsorEdit() {
+  ['edit-sponsor-id','sp-name','sp-file','sp-url'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('sponsor-form-title').textContent = 'Ajouter un sponsor';
+  document.getElementById('sponsor-btn-label').textContent = 'Ajouter';
+  document.getElementById('cancel-sponsor-btn').style.display = 'none';
+}
+
+// ════════════════════════════════════════
+// 🍽 INSCRIPTIONS AG
+// ════════════════════════════════════════
+function getAG() { try { return JSON.parse(localStorage.getItem(KEY_AG)) || []; } catch { return []; } }
+
+function renderAG() {
+  const list = getAG();
+  const counts = { entree: 0, plat: 0, dessert: 0 };
+  list.forEach(p => { if (counts[p.cat] !== undefined) counts[p.cat]++; });
+  ['entree','plat','dessert'].forEach(c => document.getElementById('ag-cnt-' + c).textContent = counts[c]);
+
+  const total = list.length;
+  const totalEl = document.getElementById('ag-total');
+  totalEl.textContent = total ? `${total} inscription${total>1?'s':''}` : '';
+
+  const empty = document.getElementById('ag-empty');
+  const table = document.getElementById('ag-table');
+
+  if (!total) {
+    empty.style.display = ''; table.style.display = 'none'; return;
+  }
+  empty.style.display = 'none'; table.style.display = '';
+
+  document.getElementById('ag-tbody').innerHTML = list.map((p, i) => `<tr>
+    <td><span class="ag-tag ${p.cat}">${CAT_LABELS[p.cat]||p.cat}</span></td>
+    <td><strong>${esc(p.enfant)}</strong></td>
+    <td>${esc(p.parent)}</td>
+    <td class="contact-cell">${esc(p.contact)}</td>
+    <td>${esc(p.plat)}</td>
+    <td style="text-align:center;">${p.portions||'—'}</td>
+    <td style="color:var(--muted);font-size:12px;">${esc(p.comment||'')}</td>
+    <td style="color:var(--muted);font-size:12px;white-space:nowrap;">${new Date(p.ts).toLocaleDateString('fr-FR')}</td>
+    <td><button class="btn-danger" onclick="deleteAGEntry(${i})">✕</button></td>
+  </tr>`).join('');
+}
+
+function deleteAGEntry(idx) {
+  if (!confirm('Supprimer cette inscription ?')) return;
+  const list = getAG();
+  list.splice(idx, 1);
+  localStorage.setItem(KEY_AG, JSON.stringify(list));
+  renderAG();
+  toast('Inscription supprimée.');
+}
+
+function clearAG() {
+  if (!confirm('Supprimer TOUTES les inscriptions ? Cette action est irréversible.')) return;
+  localStorage.removeItem(KEY_AG);
+  renderAG();
+  toast('Toutes les inscriptions ont été supprimées.');
+}
+
+function exportCSV() {
+  const list = getAG();
+  if (!list.length) { toast('Aucune inscription à exporter.', true); return; }
+  const header = ['Catégorie','Prénom enfant','Parent / Responsable','Contact','Apport','Portions','Commentaire','Date inscription'];
+  const rows = list.map(p => [
+    CAT_LABELS[p.cat] || p.cat,
+    p.enfant,
+    p.parent,
+    p.contact,
+    p.plat,
+    p.portions || '',
+    p.comment  || '',
+    new Date(p.ts).toLocaleString('fr-FR')
+  ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv  = [header.map(h => `"${h}"`).join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `inscriptions-ag-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('Export CSV téléchargé !');
+}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+function initAdmin() {
+  renderAdminEvents();
+  renderAdminSched();
+  renderSponsors();
+  const base = window.location.href.replace('admin.html','');
+  document.getElementById('info-site-url').textContent  = base + 'index.html';
+  document.getElementById('info-admin-url').textContent = window.location.href;
+}
+
+document.getElementById('password-input').addEventListener('keydown', e => { if (e.key==='Enter') login(); });
+</script>
+</body>
+</html>

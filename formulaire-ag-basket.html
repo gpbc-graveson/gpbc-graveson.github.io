@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GPBC — Assemblée Générale · Repas partagé</title>
+  <link rel="icon" type="image/png" href="images/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #c8102e; --red-dark: #9e0d24; --gold: #f0c020;
+      --black: #0e0e0e; --dark: #1a1a1a; --card: #fff;
+      --border: #e8e8e8; --text: #1a1a1a; --muted: #888;
+      --bg: #f0f0f0;
+      --tag-entree: #d4760b; --tag-plat: #c0392b; --tag-dessert: #7b2d8b;
+      --green: #1a8a4a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Outfit', sans-serif; color: var(--text); background: var(--bg); min-height: 100vh; }
+
+    /* ── NAV ── */
+    .nav {
+      background: var(--black); padding: 0 40px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 200;
+      height: 64px; border-bottom: 2px solid var(--red);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-logo img { width: 40px; height: 40px; object-fit: contain; }
+    .nav-title { color: #fff; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; }
+    .nav-badge { background: var(--red); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-left: 8px; letter-spacing: 0.5px; }
+    .nav-back { color: rgba(255,255,255,0.5); font-size: 12px; text-decoration: none; display: flex; align-items: center; gap: 5px; transition: color .2s; }
+    .nav-back:hover { color: var(--gold); }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--black); padding: 48px 40px 40px; text-align: center;
+      position: relative; overflow: hidden; border-bottom: 3px solid transparent;
+      border-image: linear-gradient(90deg, transparent, var(--red), var(--gold), var(--red), transparent) 1;
+    }
+    .hero::before {
+      content: '🏀'; position: absolute; font-size: 16rem; opacity: .03;
+      top: -4rem; right: -2rem; line-height: 1; pointer-events: none;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(200,16,46,.12); border: 1px solid rgba(200,16,46,.3);
+      color: #e06070; font-size: 11px; font-weight: 600; padding: 5px 14px;
+      border-radius: 4px; margin-bottom: 16px; letter-spacing: 1px; text-transform: uppercase;
+    }
+    .hero h1 {
+      font-family: 'Bebas Neue', sans-serif; color: #fff;
+      font-size: clamp(36px, 6vw, 68px); line-height: 1; letter-spacing: 2px; margin-bottom: 10px;
+    }
+    .hero h1 .gold { color: var(--gold); }
+    .hero p { color: rgba(255,255,255,.45); font-size: 14px; font-weight: 300; }
+
+    /* ── LAYOUT ── */
+    main {
+      max-width: 960px; margin: 0 auto; padding: 32px 20px 60px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;
+    }
+    @media (max-width: 680px) { main { grid-template-columns: 1fr; } }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .card h2 {
+      font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px;
+      color: var(--text); margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    .card h2 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+
+    /* ── FORM ── */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px;
+    }
+    .field input, .field textarea {
+      width: 100%; border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px 12px; font-family: 'Outfit', sans-serif; font-size: 14px;
+      color: var(--text); background: #fff; transition: border-color .2s, box-shadow .2s; outline: none;
+    }
+    .field input:focus, .field textarea:focus {
+      border-color: var(--red); box-shadow: 0 0 0 3px rgba(200,16,46,.1);
+    }
+    .field textarea { resize: vertical; min-height: 68px; }
+    .field-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* ── CATEGORY PILLS ── */
+    .cat-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .cat-btn {
+      border: 1.5px solid var(--border); background: #fafafa;
+      border-radius: 20px; padding: 7px 16px;
+      font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all .18s; color: var(--muted);
+    }
+    .cat-btn:hover { border-color: var(--red); color: var(--red); }
+    .cat-btn.active[data-cat="entree"]  { background: var(--tag-entree); border-color: var(--tag-entree); color: #fff; }
+    .cat-btn.active[data-cat="plat"]    { background: var(--tag-plat);   border-color: var(--tag-plat);   color: #fff; }
+    .cat-btn.active[data-cat="dessert"] { background: var(--tag-dessert);border-color: var(--tag-dessert);color: #fff; }
+
+    /* ── SUBMIT ── */
+    .btn-submit {
+      width: 100%; margin-top: 18px; padding: 13px;
+      background: var(--red); color: #fff; border: none; border-radius: 6px;
+      font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px;
+      cursor: pointer; transition: background .2s, transform .1s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-submit:hover { background: var(--red-dark); }
+    .btn-submit:active { transform: scale(.98); }
+
+    /* ── RECAP ── */
+    .counters {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px;
+    }
+    .counter-box {
+      border-radius: 6px; padding: 12px 8px; text-align: center; border: 1px solid;
+    }
+    .counter-box.entree  { background: #fdf3e7; border-color: #f5c780; }
+    .counter-box.plat    { background: #fdecea; border-color: #f0a0a0; }
+    .counter-box.dessert { background: #f5edfb; border-color: #c8a0e8; }
+    .counter-box .num {
+      font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; line-height: 1;
+    }
+    .counter-box.entree  .num { color: var(--tag-entree); }
+    .counter-box.plat    .num { color: var(--tag-plat); }
+    .counter-box.dessert .num { color: var(--tag-dessert); }
+    .counter-box .lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin-top: 2px; }
+
+    /* ── PROGRESS ── */
+    .prog-row { margin-bottom: 10px; }
+    .prog-label-row { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+    .prog-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .prog-fill { height: 100%; border-radius: 3px; transition: width .4s ease; }
+    .prog-fill.entree  { background: var(--tag-entree); }
+    .prog-fill.plat    { background: var(--tag-plat); }
+    .prog-fill.dessert { background: var(--tag-dessert); }
+
+    /* ── LIST ── */
+    #participant-list { list-style: none; margin-top: 16px; }
+    #participant-list li {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+      animation: slide-in .25s ease;
+    }
+    #participant-list li:last-child { border-bottom: none; }
+    @keyframes slide-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+
+    .tag {
+      font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 3px; flex-shrink: 0;
+    }
+    .tag.entree  { background: #fdf3e7; color: var(--tag-entree); }
+    .tag.plat    { background: #fdecea; color: var(--tag-plat); }
+    .tag.dessert { background: #f5edfb; color: var(--tag-dessert); }
+
+    .info-name { font-weight: 600; }
+    .info-sub  { color: var(--muted); font-size: 12px; }
+
+    .empty-state { text-align: center; padding: 28px 16px; color: var(--muted); font-size: 13px; }
+    .empty-state .icon { font-size: 2.2rem; margin-bottom: 8px; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 999;
+      background: var(--dark); color: #fff; padding: 12px 20px;
+      border-radius: 6px; font-size: 13px; font-weight: 500;
+      transform: translateY(80px); opacity: 0;
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+      border-left: 3px solid var(--green);
+    }
+    #toast.show { transform: none; opacity: 1; }
+
+    /* ── PLANNING ── */
+    .planning {
+      max-width: 960px; margin: 0 auto; padding: 0 20px 0;
+    }
+    .planning-inner {
+      background: var(--dark); border-radius: 8px;
+      padding: 20px 28px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 0;
+      border-left: 3px solid var(--gold);
+      overflow-x: auto;
+    }
+    .planning-label {
+      font-size: 10px; font-weight: 700; color: var(--gold);
+      text-transform: uppercase; letter-spacing: 1.5px;
+      white-space: nowrap; margin-right: 24px; flex-shrink: 0;
+    }
+    .planning-steps {
+      display: flex; align-items: center; gap: 0; flex-wrap: nowrap;
+    }
+    .planning-step {
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    }
+    .step-time {
+      font-family: 'Bebas Neue', sans-serif; font-size: 18px;
+      color: var(--red); letter-spacing: 1px; white-space: nowrap;
+    }
+    .step-icon { font-size: 16px; }
+    .step-name {
+      font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap;
+    }
+    .step-arrow {
+      margin: 0 16px; color: rgba(255,255,255,0.2); font-size: 16px; flex-shrink: 0;
+    }
+
+    @media (max-width: 480px) {
+      .nav { padding: 0 16px; }
+      .hero { padding: 32px 20px 28px; }
+      .planning-inner { padding: 16px 20px; }
+      .planning-label { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <img src="images/logo.png" alt="GPBC">
+    <span class="nav-title">GPBC</span>
+    <span class="nav-badge">AG 2025</span>
+  </a>
+  <a href="index.html" class="nav-back">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Retour au site
+  </a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-eyebrow">🏀 Assemblée Générale 2025</div>
+  <h1>Repas <span class="gold">partagé</span></h1>
+  <p>Inscrivez-vous et indiquez ce que vous apportez — on s'organise ensemble !</p>
+</header>
+
+<!-- PLANNING -->
+<div class="planning">
+  <div class="planning-inner">
+    <span class="planning-label">Programme du jour</span>
+    <div class="planning-steps">
+
+      <div class="planning-step">
+        <span class="step-time">10h30</span>
+        <span class="step-icon">🗳️</span>
+        <span class="step-name">Assemblée Générale</span>
+      </div>
+
+      <span class="step-arrow">›</span>
+
+      <div class="planning-step">
+        <span class="step-icon">🍽️</span>
+        <span class="step-name">Repas partagé</span>
+      </div>
+
+      <span class="step-arrow">›</span>
+
+      <div class="planning-step">
+        <span class="step-icon">🎯</span>
+        <span class="step-name">Pétanque</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- FORMULAIRE -->
+  <div class="card">
+    <h2><span class="dot"></span>Votre inscription</h2>
+
+    <div class="field">
+      <label>Prénom &amp; nom *</label>
+      <input type="text" id="f-parent" placeholder="Ex : Sophie Dupont" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Téléphone ou email *</label>
+      <input type="text" id="f-contact" placeholder="Ex : 06 12 34 56 78 ou marie@mail.com" autocomplete="off">
+      <div class="field-hint">🔒 Visible uniquement par les organisatrices</div>
+    </div>
+
+    <div class="field">
+      <label>Catégorie *</label>
+      <div class="cat-group">
+        <button class="cat-btn" data-cat="entree">🥗 Entrée / Apéro</button>
+        <button class="cat-btn" data-cat="plat">🍲 Plat</button>
+        <button class="cat-btn" data-cat="dessert">🍰 Dessert</button>
+      </div>
+      <input type="hidden" id="f-cat">
+    </div>
+
+    <button class="btn-submit" onclick="handleSubmit()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Valider mon inscription
+    </button>
+  </div>
+
+  <!-- RÉCAP PUBLIC -->
+  <div class="card">
+    <h2><span class="dot"></span>Qui apporte quoi ?</h2>
+
+    <div class="counters">
+      <div class="counter-box entree"><div class="num" id="cnt-entree">0</div><div class="lbl">Entrées</div></div>
+      <div class="counter-box plat">  <div class="num" id="cnt-plat">0</div>  <div class="lbl">Plats</div></div>
+      <div class="counter-box dessert"><div class="num" id="cnt-dessert">0</div><div class="lbl">Desserts</div></div>
+    </div>
+
+    <div id="prog-bars"></div>
+
+    <ul id="participant-list">
+      <li style="border:none; padding:0">
+        <div class="empty-state"><div class="icon">🧺</div>Personne n'est encore inscrit·e.<br>Soyez la première !</div>
+      </li>
+    </ul>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+  const KEY = 'ag_participants';
+  const CAT = { entree: 'Entrée / Apéro', plat: 'Plat', dessert: 'Dessert' };
+  let participants = [];
+  try { participants = JSON.parse(localStorage.getItem(KEY)) || []; } catch {}
+
+  // Pills
+  let selectedCat = '';
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedCat = btn.dataset.cat;
+    });
+  });
+
+  function handleSubmit() {
+    const parent  = document.getElementById('f-parent').value.trim();
+    const contact = document.getElementById('f-contact').value.trim();
+
+    if (!parent)  return flash('f-parent',  'Merci d\'indiquer votre prénom et nom.');
+    if (!contact) return flash('f-contact', 'Merci d\'indiquer un téléphone ou un email.');
+    if (!selectedCat) return showToast('Merci de choisir une catégorie.', true);
+
+    const entry = { parent, contact, cat: selectedCat, ts: Date.now() };
+    participants.push(entry);
+    try { localStorage.setItem(KEY, JSON.stringify(participants)); } catch {}
+
+    renderRecap();
+    resetForm();
+    showToast('✓ Inscription enregistrée !');
+  }
+
+  function flash(id, msg) {
+    const el = document.getElementById(id);
+    el.style.borderColor = 'var(--red)';
+    el.style.boxShadow   = '0 0 0 3px rgba(200,16,46,.15)';
+    el.focus();
+    setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 2000);
+    showToast(msg, true);
+  }
+
+  function resetForm() {
+    ['f-parent','f-contact'].forEach(id => document.getElementById(id).value = '');
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    selectedCat = '';
+  }
+
+  function renderRecap() {
+    const counts = { entree: 0, plat: 0, dessert: 0 };
+    participants.forEach(p => { if (counts[p.cat] !== undefined) counts[p.cat]++; });
+
+    ['entree','plat','dessert'].forEach(c => document.getElementById('cnt-' + c).textContent = counts[c]);
+
+    const total = participants.length || 1;
+    document.getElementById('prog-bars').innerHTML = ['entree','plat','dessert'].map(c => `
+      <div class="prog-row">
+        <div class="prog-label-row"><span>${CAT[c]}</span><span>${counts[c]} apport${counts[c]>1?'s':''}</span></div>
+        <div class="prog-bar"><div class="prog-fill ${c}" style="width:${Math.round(counts[c]/total*100)}%"></div></div>
+      </div>
+    `).join('');
+
+    const ul = document.getElementById('participant-list');
+    if (!participants.length) {
+      ul.innerHTML = '<li style="border:none;padding:0"><div class="empty-state"><div class="icon">🧺</div>Personne n\'est encore inscrit·e.<br>Soyez la première !</div></li>';
+      return;
+    }
+    ul.innerHTML = [...participants].reverse().map(p => `
+      <li>
+        <span class="tag ${p.cat}">${CAT[p.cat]}</span>
+        <div class="info-name">${esc(p.parent)}</div>
+      </li>`).join('');
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function showToast(msg, isError=false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.borderLeftColor = isError ? 'var(--red)' : '#1a8a4a';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  renderRecap();
+</script>
+</body>
+</html>
